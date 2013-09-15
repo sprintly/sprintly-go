@@ -14,7 +14,7 @@ type SprintlyClient struct {
 	ApiKey    string
 	ProductId int
 	// Should I be taking an HTTP client here?
-	// baseUrl?
+	BaseUrl *url.URL
 }
 
 type CreateItemResult struct {
@@ -22,7 +22,7 @@ type CreateItemResult struct {
 }
 
 func (a SprintlyClient) ItemLink(number int) string {
-	return fmt.Sprintf("https://sprint.ly/product/%d/#!/item/%d", a.ProductId, number)
+	return fmt.Sprintf("%s/product/%d/#!/item/%d", a.BaseUrl, a.ProductId, number)
 }
 
 func (a SprintlyClient) AddAnnotation(number int, label, action, body string) error {
@@ -32,7 +32,7 @@ func (a SprintlyClient) AddAnnotation(number int, label, action, body string) er
 	v.Set("body", body)
 
 	client := new(http.Client)
-	url := fmt.Sprintf("https://sprint.ly/api/products/%d/items/%d/annotations.json", a.ProductId, number)
+	url := fmt.Sprintf("%s/api/products/%d/items/%d/annotations.json", a.BaseUrl, a.ProductId, number)
 	req, err := http.NewRequest("POST", url, strings.NewReader(v.Encode()))
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func (a SprintlyClient) CreateDefect(title, description string) (string, error) 
 	v.Set("tags", "uservoice")
 
 	client := new(http.Client)
-	url := fmt.Sprintf("https://sprint.ly/api/products/%d/items.json", a.ProductId)
+	url := fmt.Sprintf("%s/api/products/%d/items.json", a.BaseUrl, a.ProductId)
 
 	req, err := http.NewRequest("POST", url, strings.NewReader(v.Encode()))
 	if err != nil {
@@ -81,5 +81,7 @@ func (a SprintlyClient) CreateDefect(title, description string) (string, error) 
 }
 
 func NewSprintlyClient(email, api_key string, product_id int) SprintlyApi {
-	return SprintlyClient{email, api_key, product_id}
+	baseUrl, _ := url.Parse("https://sprint.ly")
+	// TODO(justinabrahms): error checking
+	return SprintlyClient{email, api_key, product_id, baseUrl}
 }
