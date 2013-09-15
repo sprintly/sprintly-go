@@ -3,6 +3,7 @@ package sprintly
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -25,6 +26,15 @@ func (a SprintlyClient) ItemLink(number int) string {
 	return fmt.Sprintf("%s/product/%d/#!/item/%d", a.BaseUrl, a.ProductId, number)
 }
 
+func (a SprintlyClient) newRequest(method, endpoint string, body io.Reader) (req *http.Request, err error) {
+	req, err = http.NewRequest("POST", endpoint, body)
+	if err != nil {
+		return
+	}
+	req.SetBasicAuth(a.Email, a.ApiKey)
+	return
+}
+
 func (a SprintlyClient) AddAnnotation(number int, label, action, body string) error {
 	v := url.Values{}
 	v.Set("label", label)
@@ -33,12 +43,10 @@ func (a SprintlyClient) AddAnnotation(number int, label, action, body string) er
 
 	client := new(http.Client)
 	url := fmt.Sprintf("%s/api/products/%d/items/%d/annotations.json", a.BaseUrl, a.ProductId, number)
-	req, err := http.NewRequest("POST", url, strings.NewReader(v.Encode()))
+	req, err := a.newRequest("POST", url, strings.NewReader(v.Encode()))
 	if err != nil {
 		return err
 	}
-	req.SetBasicAuth(a.Email, a.ApiKey)
-
 	_, err = client.Do(req)
 	return err
 }
@@ -52,13 +60,7 @@ func (a SprintlyClient) CreateDefect(title, description string) (string, error) 
 
 	client := new(http.Client)
 	url := fmt.Sprintf("%s/api/products/%d/items.json", a.BaseUrl, a.ProductId)
-
-	req, err := http.NewRequest("POST", url, strings.NewReader(v.Encode()))
-	if err != nil {
-		return "", err
-	}
-
-	req.SetBasicAuth(a.Email, a.ApiKey)
+	req, err := a.newRequest("POST", url, strings.NewReader(v.Encode()))
 
 	resp, err := client.Do(req)
 	if err != nil {
