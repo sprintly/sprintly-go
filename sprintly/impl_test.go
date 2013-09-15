@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"reflect"
 	"testing"
 )
 
@@ -37,6 +38,25 @@ func testMethod(t *testing.T, r *http.Request, method string) {
 	}
 }
 
+type values map[string]string
+
+// blatantly copy + pasted from go-github
+func testFormValues(t *testing.T, r *http.Request, values values) {
+	want := url.Values{}
+	for k, v := range values {
+		want.Add(k, v)
+	}
+
+	err := r.ParseForm()
+	if err != nil {
+		t.Errorf("Error parsing form: %s\n", err)
+	}
+	if !reflect.DeepEqual(want, r.Form) {
+		t.Errorf("Request parameters = %v, want %v", r.Form, want)
+	}
+
+}
+
 func TestNewClient(t *testing.T) {
 	// Maybe too many implementation details?
 	c := NewSprintlyClient("user@example.org", "key", 1234).(SprintlyClient)
@@ -64,11 +84,21 @@ func TestDefectCreation(t *testing.T) {
 
 	mux.HandleFunc("/api/products/1/items.json", func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "POST")
-		// TODO: test correct form values
+		err := r.ParseForm()
+		if err != nil {
+			t.Errorf("Error parsing form results: %s\n", err)
+			return
+		}
+		testFormValues(t, r, values{
+			"description": "Sickness is a defect in humans.",
+			"tags":        "uservoice",
+			"title":       "Sickness.",
+			"type":        "defect",
+		})
 		fmt.Fprint(w, `{"number":1492}`)
 	})
 
-	url, err := client.CreateDefect("Sickeness.", "Sickness is a defect in humans.")
+	url, err := client.CreateDefect("Sickness.", "Sickness is a defect in humans.")
 	if err != nil {
 		t.Error(err)
 	}

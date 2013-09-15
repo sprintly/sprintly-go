@@ -27,7 +27,10 @@ func (a SprintlyClient) ItemLink(number int) string {
 }
 
 func (a SprintlyClient) newRequest(method, endpoint string, body io.Reader) (req *http.Request, err error) {
-	req, err = http.NewRequest("POST", endpoint, body)
+	req, err = http.NewRequest(method, endpoint, body)
+	if method == "POST" {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	}
 	if err != nil {
 		return
 	}
@@ -61,6 +64,9 @@ func (a SprintlyClient) CreateDefect(title, description string) (string, error) 
 	client := new(http.Client)
 	url := fmt.Sprintf("%s/api/products/%d/items.json", a.BaseUrl, a.ProductId)
 	req, err := a.newRequest("POST", url, strings.NewReader(v.Encode()))
+	if err != nil {
+		return "", err
+	}
 
 	resp, err := client.Do(req)
 	if err != nil {
