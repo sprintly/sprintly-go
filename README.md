@@ -4,6 +4,7 @@ This is a Sprint.ly API client in Go. It aims to have full API
 coverage, but will be implemented as need. Patches are welcome!
 
 [![Build Status](https://drone.io/github.com/sprintly/UserVoice-Import/status.png)](https://drone.io/github.com/sprintly/UserVoice-Import/latest)
+[![Coverage Status](https://coveralls.io/repos/sprintly/sprintly-go/badge.png?branch=master)](https://coveralls.io/r/sprintly/sprintly-go?branch=master)
 
 ## How to install
 
