@@ -130,3 +130,15 @@ func TestAddAnnotation(t *testing.T) {
 		t.Errorf("Error adding annotation: %s\n", err)
 	}
 }
+
+func TestMockDefectUrl(t *testing.T) {
+	// I really just want higher coverage.
+	a := NewMockSprintlyApi()
+	url, err := a.CreateDefect("a", "b")
+	if err != nil {
+		t.Error(err)
+	}
+	if url != "path/to/item" {
+		t.Errorf("Expected the url to be `path/to/item`, not %s\n", url)
+	}
+}
