@@ -107,3 +107,26 @@ func TestDefectCreation(t *testing.T) {
 		t.Errorf("Incorrect defect url. %v (expected) != %v", client.ItemLink(1492), url)
 	}
 }
+
+func TestAddAnnotation(t *testing.T) {
+	setup()
+	defer teardown()
+
+	mux.HandleFunc("/api/products/1/items/1234/annotations.json", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "POST")
+		err := r.ParseForm()
+		if err != nil {
+			t.Errorf("Error parsing form: %s\n", err)
+		}
+		testFormValues(t, r, values{
+			"label":  "lab",
+			"action": "act",
+			"body":   "bdy",
+		})
+	})
+
+	err := client.AddAnnotation(1234, "lab", "act", "bdy")
+	if err != nil {
+		t.Errorf("Error adding annotation: %s\n", err)
+	}
+}
